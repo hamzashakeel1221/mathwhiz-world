@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { prisma } from "@/lib/prisma";
+import { newId, now, run } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/request";
 import { bookingSchema, reviewSchema, type FormState } from "@/lib/validation";
@@ -26,7 +26,14 @@ export async function bookDemo(_prev: FormState, formData: FormData): Promise<Fo
   }
 
   try {
-    await prisma.demoBooking.create({ data: parsed.data });
+    const d = parsed.data;
+    const t = now();
+    await run(
+      `INSERT INTO demo_bookings (id, student_name, parent_name, email, whatsapp, country, timezone, curriculum, year_level, preferred_time, message, status, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'NEW', ?, ?)`,
+      newId("bk"), d.studentName, d.parentName ?? null, d.email, d.whatsapp, d.country ?? null, d.timezone ?? null,
+      d.curriculum, d.yearLevel ?? null, d.preferredTime ?? null, d.message ?? null, t, t,
+    );
   } catch (err) {
     console.error("[bookDemo]", err);
     return { ok: false, message: "Sorry, we couldn't save your request. Please contact us on WhatsApp or email." };
@@ -53,7 +60,13 @@ export async function submitReview(_prev: FormState, formData: FormData): Promis
   }
 
   try {
-    await prisma.review.create({ data: { ...parsed.data, approved: false } });
+    const r = parsed.data;
+    const t = now();
+    await run(
+      `INSERT INTO reviews (id, name, role, country, curriculum, rating, content, approved, featured, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0, 0, ?, ?)`,
+      newId("rev"), r.name, r.role ?? null, r.country ?? null, r.curriculum ?? null, r.rating, r.content, t, t,
+    );
   } catch (err) {
     console.error("[submitReview]", err);
     return { ok: false, message: "Sorry, we couldn't save your review right now. Please try again later." };

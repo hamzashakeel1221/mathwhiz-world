@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mathwhiz-world",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "services": [
+    // Self-reference service binding required by OpenNext, must match "name" above.
+    { "binding": "WORKER_SELF_REFERENCE", "service": "mathwhiz-world" }
+  ],
+  "images": {
+    // Cloudflare Images binding for next/image optimization
+    "binding": "IMAGES"
+  },
+  "d1_databases": [
+    {
+      // No database_id on purpose: the first `wrangler deploy` creates the "mathwhiz-world" D1 database
+      // automatically and remembers it for later deploys.
+      "binding": "DB",
+      "database_name": "mathwhiz-world",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "observability": { "enabled": true },
+  // Keep variables and secrets set in the Cloudflare dashboard (ADMIN_EMAIL, ADMIN_PASSWORD, SITE_URL) on every deploy.
+  "keep_vars": true
+}

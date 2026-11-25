@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { all } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth";
 import { deleteAdmin } from "../../actions";
 import { AdminHeader, Badge, Panel, btn } from "@/components/admin/ui";
@@ -11,7 +11,7 @@ export const metadata = { title: "Account" };
 
 export default async function AccountPage() {
   const me = await requireAdmin();
-  const admins = await prisma.adminUser.findMany({ orderBy: { createdAt: "asc" }, select: { id: true, email: true, name: true, lastLoginAt: true } });
+  const admins = (await all<{ id: string; email: string; name: string; last_login_at: string | null }>("SELECT id, email, name, last_login_at FROM admin_users ORDER BY created_at")).map((a) => ({ ...a, lastLoginAt: a.last_login_at }));
   return (
     <>
       <AdminHeader title="Account & admins" subtitle={`Signed in as ${me.email}`} />

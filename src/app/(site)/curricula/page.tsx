@@ -1,13 +1,14 @@
 import { PageHero } from "@/components/ui/PageHero";
 import { CurriculumCard } from "@/components/home/CurriculaGrid";
 import { Stagger, StaggerItem } from "@/components/ui/Reveal";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { CtaSection } from "@/components/home/CtaSection";
 import { getCurricula, getSettings } from "@/lib/data";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Maths Curricula We Teach: O Level, IGCSE, GCSE, Edexcel, AQA",
@@ -16,12 +17,13 @@ export const metadata = pageMetadata({
 });
 
 export default async function CurriculaPage() {
+  const base = await getSiteUrl();
   const [curricula, settings] = await Promise.all([getCurricula(), getSettings()]);
   return (
     <>
       <JsonLd data={[
-        breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Curricula", path: "/curricula" }]),
-        { "@context": "https://schema.org", "@type": "ItemList", itemListElement: curricula.map((c, i) => ({ "@type": "ListItem", position: i + 1, url: absoluteUrl(`/curricula/${c.slug}`), name: c.title })) },
+        breadcrumbJsonLd(base, [{ name: "Home", path: "/" }, { name: "Curricula", path: "/curricula" }]),
+        { "@context": "https://schema.org", "@type": "ItemList", itemListElement: curricula.map((c, i) => ({ "@type": "ListItem", position: i + 1, url: absoluteUrl(base, `/curricula/${c.slug}`), name: c.title })) },
       ]} />
       <PageHero
         eyebrow="Curricula & exam boards"

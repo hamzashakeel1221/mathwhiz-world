@@ -1,25 +1,21 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import { first, type CurriculumRow } from "@/lib/db";
+import { toCurriculum } from "@/lib/data";
 import { AdminHeader } from "@/components/admin/ui";
 import { CurriculumForm } from "@/components/admin/CurriculumForm";
-import type { ExamPaper } from "@/lib/defaults";
 
 export const metadata = { title: "Edit curriculum" };
 
 export default async function EditCurriculum({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const c = await prisma.curriculum.findUnique({ where: { id } });
-  if (!c) notFound();
+  const row = await first<CurriculumRow>("SELECT * FROM curricula WHERE id = ?", id);
+  if (!row) notFound();
+  const c = toCurriculum(row);
   return (
     <>
       <AdminHeader title={`Edit: ${c.shortTitle}`} subtitle={`/curricula/${c.slug}`} />
       <CurriculumForm
-        initial={{
-          ...c,
-          topics: (c.topics as string[]) ?? [],
-          highlights: (c.highlights as string[]) ?? [],
-          examStructure: (c.examStructure as ExamPaper[] | null) ?? null,
-        }}
+        initial={c}
       />
     </>
   );

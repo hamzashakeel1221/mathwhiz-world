@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { all, toFaq, type FaqRow } from "@/lib/db";
 import { deleteFaq, saveFaq } from "../../actions";
 import { AdminHeader, Badge, Field, Panel, btn } from "@/components/admin/ui";
 import { ConfirmButton, SubmitButton } from "@/components/admin/ConfirmButton";
@@ -7,7 +7,7 @@ import { ConfirmButton, SubmitButton } from "@/components/admin/ConfirmButton";
 export const metadata = { title: "FAQs" };
 
 export default async function FaqsAdmin() {
-  const faqs = await prisma.faq.findMany({ orderBy: { sortOrder: "asc" } });
+  const faqs = (await all<FaqRow>("SELECT * FROM faqs ORDER BY sort_order")).map(toFaq);
   return (
     <>
       <AdminHeader title="FAQs" subtitle="Shown on the FAQ page and home page, and published as FAQPage structured data for Google." />

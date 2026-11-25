@@ -1,5 +1,3 @@
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
-
 export const siteConfig = {
   name: "MathWhiz World Academy",
   shortName: "MathWhiz World",
@@ -48,6 +46,6 @@ export function whatsappLink(number: string, text = "Hi MathWhiz World Academy! 
   return `https://wa.me/${number.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`;
 }
 
-export function absoluteUrl(path = "/") {
-  return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+export function absoluteUrl(base: string, path = "/") {
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }

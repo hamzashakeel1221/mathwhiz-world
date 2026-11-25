@@ -1,19 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE, verifySession } from "@/lib/session";
 
-export async function middleware(req: NextRequest) {
+const SESSION_COOKIE = "mw_admin_session";
+
+// Fast gate: no session cookie → login page. Every admin page and action also
+// validates the session against the database (see src/lib/auth.ts).
+export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
-    const session = await verifySession(req.cookies.get(SESSION_COOKIE)?.value);
-    if (!session) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin/login";
-      url.search = "";
-      return NextResponse.redirect(url);
-    }
+  if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login") && !req.cookies.get(SESSION_COOKIE)) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/admin/login";
+    url.search = "";
+    return NextResponse.redirect(url);
   }
   const res = NextResponse.next();
-  if (pathname.startsWith("/admin")) res.headers.set("X-Robots-Tag", "noindex, nofollow");
+  res.headers.set("X-Robots-Tag", "noindex, nofollow");
   return res;
 }
 

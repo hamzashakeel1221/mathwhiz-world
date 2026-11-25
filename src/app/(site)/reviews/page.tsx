@@ -1,4 +1,5 @@
 import { PageHero } from "@/components/ui/PageHero";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Stars } from "@/components/ui/Stars";
 import { Reveal } from "@/components/ui/Reveal";
@@ -6,7 +7,7 @@ import { ReviewForm } from "@/components/forms/ReviewForm";
 import { getApprovedReviews, getCurricula } from "@/lib/data";
 import { breadcrumbJsonLd, pageMetadata, reviewsJsonLd } from "@/lib/seo";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Reviews from Students & Parents",
@@ -15,13 +16,14 @@ export const metadata = pageMetadata({
 });
 
 export default async function ReviewsPage() {
+  const base = await getSiteUrl();
   const [reviews, curricula] = await Promise.all([getApprovedReviews(), getCurricula()]);
   const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
   const crumbs = [{ name: "Home", path: "/" }, { name: "Reviews", path: "/reviews" }];
-  const ld = reviewsJsonLd(reviews);
+  const ld = reviewsJsonLd(base, reviews);
   return (
     <>
-      <JsonLd data={ld ? [breadcrumbJsonLd(crumbs), ld] : breadcrumbJsonLd(crumbs)} />
+      <JsonLd data={ld ? [breadcrumbJsonLd(base, crumbs), ld] : breadcrumbJsonLd(base, crumbs)} />
       <PageHero eyebrow="Reviews" title={<>Loved by students <span className="text-gradient">& parents</span></>} subtitle="Your child's success is our priority." crumbs={crumbs}>
         {reviews.length > 0 && (
           <div className="glass mt-8 inline-flex items-center gap-4 rounded-2xl px-5 py-4">

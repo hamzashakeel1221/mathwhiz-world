@@ -3,23 +3,18 @@ import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { ButtonLink } from "@/components/ui/Button";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { CurriculumCard, accentClasses } from "@/components/home/CurriculaGrid";
 import { Highlights, TopicsGrid, ExamStructure } from "@/components/CurriculumDetail";
 import { CtaSection } from "@/components/home/CtaSection";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { getCurricula, getCurriculum, getSettings } from "@/lib/data";
-import { defaultCurricula } from "@/lib/defaults";
 import { breadcrumbJsonLd, courseJsonLd, pageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-export const revalidate = 300;
-export const dynamicParams = true;
+export const dynamic = "force-dynamic";
 
-export async function generateStaticParams() {
-  const list = await getCurricula().catch(() => defaultCurricula);
-  return list.map((c) => ({ slug: c.slug }));
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -34,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export default async function CurriculumPage({ params }: { params: Promise<{ slug: string }> }) {
+  const base = await getSiteUrl();
   const { slug } = await params;
   const [c, all, settings] = await Promise.all([getCurriculum(slug), getCurricula(), getSettings()]);
   if (!c) notFound();
@@ -42,7 +38,7 @@ export default async function CurriculumPage({ params }: { params: Promise<{ slu
 
   return (
     <>
-      <JsonLd data={[courseJsonLd(c), breadcrumbJsonLd(crumbs)]} />
+      <JsonLd data={[courseJsonLd(base, c), breadcrumbJsonLd(base, crumbs)]} />
       <PageHero
         eyebrow={`${c.board} · ${c.yearRange}`}
         title={<>{c.title}</>}
