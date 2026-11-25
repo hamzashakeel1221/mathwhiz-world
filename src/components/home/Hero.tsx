@@ -24,7 +24,7 @@ export function Hero({ settings }: { settings: Record<string, string> }) {
       <div className="grid-bg absolute inset-0 -z-10" />
       <div className="absolute -left-40 top-20 -z-10 h-[30rem] w-[30rem] rounded-full bg-teal-500/20 blur-[120px]" />
       <div className="absolute -right-20 bottom-0 -z-10 h-[26rem] w-[26rem] rounded-full bg-brandorange-500/15 blur-[120px]" />
-      <div className="absolute inset-0 -z-10 opacity-40 md:opacity-100"><HeroBackground /></div>
+      <div className="absolute inset-0 -z-10 opacity-70 md:opacity-100"><HeroBackground /></div>
       <div className="pointer-events-none absolute inset-y-0 left-0 -z-10 hidden w-1/2 bg-gradient-to-r from-navy-950/70 via-navy-950/30 to-transparent lg:block" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-b from-transparent to-navy-950" />
 
