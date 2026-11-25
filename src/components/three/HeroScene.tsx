@@ -146,14 +146,15 @@ function Rig({ children }: { children: React.ReactNode }) {
 
 export default function HeroScene() {
   const { ref, inView } = useInViewport<HTMLDivElement>();
+  const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const mobile = typeof window !== "undefined" && window.innerWidth < 768;
   return (
     <div ref={ref} className="absolute inset-0">
       <Canvas
-        frameloop={inView ? "always" : "never"}
+        frameloop={inView ? (reduce ? "demand" : "always") : "never"}
         dpr={[1, mobile ? 1.5 : 1.75]}
         camera={{ position: [0, 0, 9], fov: 45 }}
-        gl={{ antialias: !mobile, alpha: true, powerPreference: "high-performance" }}
+        gl={{ antialias: !mobile, alpha: true, powerPreference: "default", failIfMajorPerformanceCaveat: false }}
       >
         <ambientLight intensity={0.5} />
         <directionalLight position={[5, 5, 5]} intensity={1.4} />
