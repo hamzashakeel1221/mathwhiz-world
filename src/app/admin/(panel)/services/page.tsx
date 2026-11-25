@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { all, toService, type ServiceRow } from "@/lib/db";
 import { deleteService, saveService } from "../../actions";
 import { AdminHeader, Badge, Field, Panel, btn } from "@/components/admin/ui";
 import { ConfirmButton, SubmitButton } from "@/components/admin/ConfirmButton";
@@ -22,7 +22,7 @@ function ServiceFields({ s }: { s?: { title: string; description: string; icon: 
 }
 
 export default async function ServicesAdmin() {
-  const services = await prisma.service.findMany({ orderBy: { sortOrder: "asc" } });
+  const services = (await all<ServiceRow>("SELECT * FROM services ORDER BY sort_order")).map(toService);
   return (
     <>
       <AdminHeader title="Services" subtitle="The 'What's included' cards on the home page." />

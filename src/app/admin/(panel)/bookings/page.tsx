@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Mail, Globe2, Clock, Trash2 } from "lucide-react";
-import type { BookingStatus, Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { all, toBooking, type BookingRow, type BookingStatus } from "@/lib/db";
 import { deleteBooking, updateBooking } from "../../actions";
 import { AdminHeader, Badge, EmptyState, Panel, btn } from "@/components/admin/ui";
 import { ConfirmButton, SubmitButton } from "@/components/admin/ConfirmButton";
@@ -14,14 +13,21 @@ export const metadata = { title: "Demo bookings" };
 
 export default async function BookingsPage({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
   const { status, q } = await searchParams;
-  const where: Prisma.DemoBookingWhereInput = {};
-  if (status && STATUSES.includes(status as BookingStatus)) where.status = status as BookingStatus;
-  if (q) where.OR = [{ studentName: { contains: q } }, { email: { contains: q } }, { whatsapp: { contains: q } }, { parentName: { contains: q } }];
-  const [bookings, counts] = await Promise.all([
-    prisma.demoBooking.findMany({ where, orderBy: { createdAt: "desc" }, take: 200 }),
-    prisma.demoBooking.groupBy({ by: ["status"], _count: { _all: true } }),
+  const conds: string[] = [];
+  const params: unknown[] = [];
+  if (status && STATUSES.includes(status as BookingStatus)) { conds.push("status = ?"); params.push(status); }
+  if (q) {
+    conds.push("(student_name LIKE ? OR email LIKE ? OR whatsapp LIKE ? OR parent_name LIKE ?)");
+    const like = `%${q}%`;
+    params.push(like, like, like, like);
+  }
+  const where = conds.length ? `WHERE ${conds.join(" AND ")}` : "";
+  const [rows, counts] = await Promise.all([
+    all<BookingRow>(`SELECT * FROM demo_bookings ${where} ORDER BY created_at DESC LIMIT 200`, ...params),
+    all<{ status: string; n: number }>("SELECT status, COUNT(*) AS n FROM demo_bookings GROUP BY status"),
   ]);
-  const countOf = (s: string) => counts.find((c) => c.status === s)?._count._all ?? 0;
+  const bookings = rows.map(toBooking);
+  const countOf = (s: string) => counts.find((c) => c.status === s)?.n ?? 0;
 
   return (
     <>

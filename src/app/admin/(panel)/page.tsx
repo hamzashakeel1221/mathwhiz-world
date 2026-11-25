@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarCheck, Star, BookOpen, Inbox, ArrowRight } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { all, first, toBooking, type BookingRow } from "@/lib/db";
 import { AdminHeader, Badge, Panel } from "@/components/admin/ui";
 import { formatDate } from "@/lib/utils";
 import { statusTone } from "./bookings/status";
@@ -8,18 +8,25 @@ import { statusTone } from "./bookings/status";
 export const metadata = { title: "Dashboard" };
 
 export default async function Dashboard() {
-  const weekAgo = new Date(Date.now() - 7 * 864e5);
-  const [newBookings, weekBookings, totalBookings, pendingReviews, approvedReviews, curricula, recent, byCurriculum] = await Promise.all([
-    prisma.demoBooking.count({ where: { status: "NEW" } }),
-    prisma.demoBooking.count({ where: { createdAt: { gte: weekAgo } } }),
-    prisma.demoBooking.count(),
-    prisma.review.count({ where: { approved: false } }),
-    prisma.review.count({ where: { approved: true } }),
-    prisma.curriculum.count({ where: { published: true } }),
-    prisma.demoBooking.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
-    prisma.demoBooking.groupBy({ by: ["curriculum"], _count: { _all: true }, orderBy: { _count: { curriculum: "desc" } }, take: 6 }),
+  const weekAgo = new Date(Date.now() - 7 * 864e5).toISOString();
+  type Stats = { newBookings: number; weekBookings: number; totalBookings: number; pendingReviews: number; approvedReviews: number; curricula: number };
+  const [stats, recentRows, byCurriculum] = await Promise.all([
+    first<Stats>(
+      `SELECT
+        (SELECT COUNT(*) FROM demo_bookings WHERE status = 'NEW') AS newBookings,
+        (SELECT COUNT(*) FROM demo_bookings WHERE created_at >= ?) AS weekBookings,
+        (SELECT COUNT(*) FROM demo_bookings) AS totalBookings,
+        (SELECT COUNT(*) FROM reviews WHERE approved = 0) AS pendingReviews,
+        (SELECT COUNT(*) FROM reviews WHERE approved = 1) AS approvedReviews,
+        (SELECT COUNT(*) FROM curricula WHERE published = 1) AS curricula`,
+      weekAgo,
+    ),
+    all<BookingRow>("SELECT * FROM demo_bookings ORDER BY created_at DESC LIMIT 6"),
+    all<{ curriculum: string; n: number }>("SELECT curriculum, COUNT(*) AS n FROM demo_bookings GROUP BY curriculum ORDER BY n DESC LIMIT 6"),
   ]);
-  const max = Math.max(1, ...byCurriculum.map((b) => b._count._all));
+  const { newBookings = 0, weekBookings = 0, totalBookings = 0, pendingReviews = 0, approvedReviews = 0, curricula = 0 } = stats ?? {};
+  const recent = recentRows.map(toBooking);
+  const max = Math.max(1, ...byCurriculum.map((b) => b.n));
 
   const cards = [
     { label: "New demo requests", value: newBookings, sub: `${weekBookings} this week · ${totalBookings} total`, Icon: Inbox, href: "/admin/bookings?status=NEW", tone: "from-brandorange-500/30" },
@@ -67,8 +74,8 @@ export default async function Dashboard() {
             <ul className="space-y-3">
               {byCurriculum.map((b) => (
                 <li key={b.curriculum}>
-                  <div className="flex justify-between text-xs text-slate-300"><span className="truncate pr-2">{b.curriculum}</span><span>{b._count._all}</span></div>
-                  <div className="mt-1 h-2 rounded-full bg-white/5"><div className="h-2 rounded-full bg-gradient-to-r from-teal-400 to-sun-400" style={{ width: `${(b._count._all / max) * 100}%` }} /></div>
+                  <div className="flex justify-between text-xs text-slate-300"><span className="truncate pr-2">{b.curriculum}</span><span>{b.n}</span></div>
+                  <div className="mt-1 h-2 rounded-full bg-white/5"><div className="h-2 rounded-full bg-gradient-to-r from-teal-400 to-sun-400" style={{ width: `${(b.n / max) * 100}%` }} /></div>
                 </li>
               ))}
             </ul>

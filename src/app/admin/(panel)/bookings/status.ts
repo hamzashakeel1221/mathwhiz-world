@@ -1,4 +1,4 @@
-import type { BookingStatus } from "@prisma/client";
+import { BOOKING_STATUSES, type BookingStatus } from "@/lib/db";
 
 export const statusTone: Record<BookingStatus, "orange" | "blue" | "teal" | "green" | "red"> = {
   NEW: "orange",
@@ -7,4 +7,4 @@ export const statusTone: Record<BookingStatus, "orange" | "blue" | "teal" | "gre
   COMPLETED: "green",
   CANCELLED: "red",
 };
-export const STATUSES: BookingStatus[] = ["NEW", "CONTACTED", "SCHEDULED", "COMPLETED", "CANCELLED"];
+export const STATUSES = BOOKING_STATUSES;

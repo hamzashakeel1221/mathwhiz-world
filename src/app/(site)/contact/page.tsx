@@ -1,11 +1,12 @@
 import { PageHero } from "@/components/ui/PageHero";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { CtaSection } from "@/components/home/CtaSection";
 import { getCurricula, getSettings } from "@/lib/data";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/site";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "Book a Free Demo Maths Class | Contact MathWhiz World Academy",
@@ -14,11 +15,12 @@ export const metadata = pageMetadata({
 });
 
 export default async function ContactPage() {
+  const base = await getSiteUrl();
   const [settings, curricula] = await Promise.all([getSettings(), getCurricula()]);
   const crumbs = [{ name: "Home", path: "/" }, { name: "Contact", path: "/contact" }];
   return (
     <>
-      <JsonLd data={[breadcrumbJsonLd(crumbs), { "@context": "https://schema.org", "@type": "ContactPage", name: "Contact MathWhiz World Academy", url: absoluteUrl("/contact") }]} />
+      <JsonLd data={[breadcrumbJsonLd(base, crumbs), { "@context": "https://schema.org", "@type": "ContactPage", name: "Contact MathWhiz World Academy", url: absoluteUrl(base, "/contact") }]} />
       <PageHero
         eyebrow="Contact"
         title={<>Let&apos;s start with a <span className="text-gradient-warm">free demo</span></>}

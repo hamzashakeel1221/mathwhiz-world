@@ -2,6 +2,7 @@ import Image from "next/image";
 import { ArrowRight, Check, X, Target, Timer, BookOpenCheck, LineChart } from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { ButtonLink } from "@/components/ui/Button";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/Reveal";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -13,7 +14,7 @@ import { getApprovedReviews, getCurricula, getFaqs, getSettings } from "@/lib/da
 import { defaultCurricula } from "@/lib/defaults";
 import { breadcrumbJsonLd, courseJsonLd, faqJsonLd, pageMetadata } from "@/lib/seo";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "O Level Maths Tutor Online | Cambridge O Level Mathematics 4024",
@@ -47,6 +48,7 @@ const PLAN = [
 ];
 
 export default async function OLevelPage() {
+  const base = await getSiteUrl();
   const [curricula, settings, faqs, reviews] = await Promise.all([getCurricula(), getSettings(), getFaqs(), getApprovedReviews(12)]);
   const c = curricula.find((x) => x.code === "4024") ?? defaultCurricula[0];
   const crumbs = [{ name: "Home", path: "/" }, { name: "O-Level Maths Tutor", path: "/o-level-maths-tutor" }];
@@ -54,7 +56,7 @@ export default async function OLevelPage() {
 
   return (
     <>
-      <JsonLd data={[courseJsonLd(c), breadcrumbJsonLd(crumbs), faqJsonLd(olFaqs)]} />
+      <JsonLd data={[courseJsonLd(base, c), breadcrumbJsonLd(base, crumbs), faqJsonLd(olFaqs)]} />
       <PageHero
         eyebrow="Cambridge O Level · Syllabus 4024"
         title={<>O-Level <span className="text-gradient-warm">Maths Tutor</span> online</>}

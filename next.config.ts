@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -10,7 +11,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  images: { formats: ["image/avif", "image/webp"] },
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
@@ -23,3 +23,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+// Makes Cloudflare bindings (the D1 database) available during `next dev`.
+initOpenNextCloudflareForDev();

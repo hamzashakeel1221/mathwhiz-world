@@ -1,0 +1,5 @@
+# Local secrets for `npm run preview` / `next dev`. Copy to .dev.vars (and .env.local).
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-me-to-something-long
+# Optional: your public URL (no trailing slash). Defaults to the address the site is opened on.
+SITE_URL=http://localhost:3000

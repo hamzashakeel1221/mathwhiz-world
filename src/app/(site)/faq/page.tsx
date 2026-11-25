@@ -1,11 +1,12 @@
 import { PageHero } from "@/components/ui/PageHero";
 import { FaqAccordion } from "@/components/ui/FaqAccordion";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { ButtonLink } from "@/components/ui/Button";
 import { getFaqs } from "@/lib/data";
 import { breadcrumbJsonLd, faqJsonLd, pageMetadata } from "@/lib/seo";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "FAQ: Online O Level & IGCSE Maths Tutoring",
@@ -14,6 +15,7 @@ export const metadata = pageMetadata({
 });
 
 export default async function FaqPage() {
+  const base = await getSiteUrl();
   const faqs = await getFaqs();
   const groups = faqs.reduce<Record<string, typeof faqs>>((acc, f) => {
     (acc[f.category] ||= []).push(f);
@@ -22,7 +24,7 @@ export default async function FaqPage() {
   const crumbs = [{ name: "Home", path: "/" }, { name: "FAQ", path: "/faq" }];
   return (
     <>
-      <JsonLd data={[faqJsonLd(faqs), breadcrumbJsonLd(crumbs)]} />
+      <JsonLd data={[faqJsonLd(faqs), breadcrumbJsonLd(base, crumbs)]} />
       <PageHero eyebrow="FAQ" title={<>Frequently asked <span className="text-gradient">questions</span></>} subtitle="Everything you need to know before your free demo class." crumbs={crumbs} />
       <section className="section pt-4">
         <div className="container max-w-3xl space-y-12">

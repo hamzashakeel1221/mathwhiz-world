@@ -14,7 +14,7 @@ import { getApprovedReviews, getCurricula, getFaqs, getServices, getSettings } f
 import { faqJsonLd } from "@/lib/seo";
 import Link from "next/link";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [settings, curricula, services, faqs, reviews] = await Promise.all([

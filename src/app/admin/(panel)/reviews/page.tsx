@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Check, EyeOff, Pin, PinOff, Trash2, Pencil } from "lucide-react";
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/prisma";
+import { all, first, toReview, type ReviewRow } from "@/lib/db";
 import { deleteReview, saveReview, setReviewFlags } from "../../actions";
 import { AdminHeader, Badge, EmptyState, Field, Panel, btn } from "@/components/admin/ui";
 import { ConfirmButton, SubmitButton } from "@/components/admin/ConfirmButton";
@@ -12,11 +11,13 @@ export const metadata = { title: "Reviews" };
 
 export default async function ReviewsAdmin({ searchParams }: { searchParams: Promise<{ filter?: string; edit?: string }> }) {
   const { filter, edit } = await searchParams;
-  const where: Prisma.ReviewWhereInput = filter === "pending" ? { approved: false } : filter === "approved" ? { approved: true } : {};
-  const [reviews, editing] = await Promise.all([
-    prisma.review.findMany({ where, orderBy: [{ approved: "asc" }, { createdAt: "desc" }] }),
-    edit ? prisma.review.findUnique({ where: { id: edit } }) : null,
+  const where = filter === "pending" ? "WHERE approved = 0" : filter === "approved" ? "WHERE approved = 1" : "";
+  const [rows, editRow] = await Promise.all([
+    all<ReviewRow>(`SELECT * FROM reviews ${where} ORDER BY approved ASC, created_at DESC`),
+    edit ? first<ReviewRow>("SELECT * FROM reviews WHERE id = ?", edit) : null,
   ]);
+  const reviews = rows.map(toReview);
+  const editing = editRow ? toReview(editRow) : null;
 
   return (
     <>

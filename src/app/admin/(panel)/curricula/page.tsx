@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Plus, Pencil, Trash2, ExternalLink, Eye, EyeOff, Star } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { all, type CurriculumRow } from "@/lib/db";
+import { toCurriculum } from "@/lib/data";
 import { deleteCurriculum, toggleCurriculum } from "../../actions";
 import { AdminHeader, Badge, EmptyState, btn } from "@/components/admin/ui";
 import { ConfirmButton } from "@/components/admin/ConfirmButton";
@@ -8,7 +9,7 @@ import { ConfirmButton } from "@/components/admin/ConfirmButton";
 export const metadata = { title: "Curricula" };
 
 export default async function CurriculaAdmin() {
-  const list = await prisma.curriculum.findMany({ orderBy: { sortOrder: "asc" } });
+  const list = (await all<CurriculumRow>("SELECT * FROM curricula ORDER BY sort_order")).map(toCurriculum);
   return (
     <>
       <AdminHeader

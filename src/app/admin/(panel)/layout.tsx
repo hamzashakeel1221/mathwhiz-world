@@ -1,15 +1,15 @@
 import { Sidebar } from "@/components/admin/Sidebar";
 import { requireAdmin } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
+import { first } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
-  const [bookings, reviews] = await Promise.all([
-    prisma.demoBooking.count({ where: { status: "NEW" } }),
-    prisma.review.count({ where: { approved: false } }),
-  ]);
+  const counts = await first<{ bookings: number; reviews: number }>(
+    "SELECT (SELECT COUNT(*) FROM demo_bookings WHERE status = 'NEW') AS bookings, (SELECT COUNT(*) FROM reviews WHERE approved = 0) AS reviews",
+  );
+  const bookings = counts?.bookings ?? 0, reviews = counts?.reviews ?? 0;
   return (
     <>
       <Sidebar name={admin.name} counts={{ bookings, reviews }} />

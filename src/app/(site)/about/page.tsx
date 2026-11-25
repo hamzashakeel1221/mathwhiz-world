@@ -2,13 +2,14 @@ import Image from "next/image";
 import { Heart, Globe2, Lightbulb, ShieldCheck } from "lucide-react";
 import { PageHero } from "@/components/ui/PageHero";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/Reveal";
+import { getSiteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Method } from "@/components/home/Method";
 import { CtaSection } from "@/components/home/CtaSection";
 import { getCurricula, getSettings } from "@/lib/data";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 export const metadata = pageMetadata({
   title: "About MathWhiz World Academy | Online Maths Tutors in Islamabad",
@@ -24,11 +25,12 @@ const VALUES = [
 ];
 
 export default async function AboutPage() {
+  const base = await getSiteUrl();
   const [settings, curricula] = await Promise.all([getSettings(), getCurricula()]);
   const crumbs = [{ name: "Home", path: "/" }, { name: "About", path: "/about" }];
   return (
     <>
-      <JsonLd data={breadcrumbJsonLd(crumbs)} />
+      <JsonLd data={breadcrumbJsonLd(base, crumbs)} />
       <PageHero
         eyebrow="About us"
         title={<>Your online maths <span className="text-gradient">learning partner</span></>}
